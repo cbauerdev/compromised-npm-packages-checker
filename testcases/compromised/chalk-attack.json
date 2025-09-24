@@ -1,0 +1,14 @@
+{
+  "name": "chalk-debug-attack-test",
+  "version": "1.0.0",
+  "description": "Test case for September 8, 2025 chalk/debug attack",
+  "dependencies": {
+    "chalk": "5.6.1",
+    "debug": "4.4.2",
+    "color-convert": "3.1.1"
+  },
+  "devDependencies": {
+    "ansi-regex": "6.2.1",
+    "ansi-styles": "6.2.2"
+  }
+}

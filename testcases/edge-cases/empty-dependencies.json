@@ -1,0 +1,7 @@
+{
+  "name": "empty-project",
+  "version": "1.0.0",
+  "description": "Test case with no dependencies",
+  "dependencies": {},
+  "devDependencies": {}
+}

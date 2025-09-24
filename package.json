@@ -1,0 +1,20 @@
+{
+  "name": "shaihulud-dependency-check",
+  "version": "1.0.0",
+  "description": "Security tool to detect compromised NPM packages in Node.js projects",
+  "main": "check-compromised-packages.js",
+  "bin": {
+    "shaihulud-dependency-check": "./check-compromised-packages.js"
+  },
+  "scripts": {
+    "check": "node check-compromised-packages.js",
+    "check-frontend": "node check-compromised-packages.js frontend/package-lock.json"
+  },
+  "keywords": ["security", "npm", "packages", "check", "malware", "vulnerability"],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "preferGlobal": false
+}

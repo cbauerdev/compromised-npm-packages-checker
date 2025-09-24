@@ -1,0 +1,20 @@
+{
+  "name": "comprehensive-compromise-test",
+  "version": "1.0.0",
+  "description": "Test case with various compromised packages from different namespaces",
+  "dependencies": {
+    "ngx-bootstrap": "20.0.4",
+    "ngx-toastr": "19.0.1",
+    "angulartics2": "14.1.2",
+    "@operato/board": "9.0.36",
+    "@things-factory/email-base": "9.0.43"
+  },
+  "devDependencies": {
+    "@crowdstrike/commitlint": "8.1.1",
+    "@nstudio/angular": "20.0.4",
+    "encounter-playground": "0.0.4"
+  },
+  "peerDependencies": {
+    "@teselagen/bio-parsers": "0.4.29"
+  }
+}

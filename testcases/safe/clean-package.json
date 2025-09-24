@@ -1,0 +1,18 @@
+{
+  "name": "safe-project",
+  "version": "1.0.0",
+  "description": "Test case with only safe packages",
+  "dependencies": {
+    "express": "^4.18.0",
+    "lodash": "^4.17.21",
+    "axios": "^1.0.0",
+    "@ctrl/tinycolor": "^3.9.0",
+    "chalk": "^4.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^2.8.0",
+    "typescript": "^4.9.0"
+  }
+}

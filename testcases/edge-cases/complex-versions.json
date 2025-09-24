@@ -1,0 +1,11 @@
+{
+  "name": "invalid-versions-test",
+  "version": "1.0.0",
+  "description": "Test case with edge case version formats",
+  "dependencies": {
+    "package-with-prerelease": "1.0.0-alpha.1",
+    "package-with-build": "1.0.0+build.1",
+    "chalk": "5.6.1",
+    "package-with-range": ">=1.0.0 <2.0.0"
+  }
+}

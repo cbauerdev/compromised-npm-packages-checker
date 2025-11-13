@@ -1,10 +1,10 @@
 {
   "_metadata": {
-    "source": "Shai-Hulud NPM Supply Chain Attack - Cobenian Detection List",
-    "url": "https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt",
-    "lastUpdated": "2025-09-24",
-    "description": "Compromised NPM packages and their specific vulnerable versions",
-    "totalPackages": 239
+    "source": "Multiple sources: Shai-Hulud NPM Supply Chain Attack + Red Hat Security Advisory",
+    "url": "https://access.redhat.com/security/supply-chain-attacks-NPM-packages",
+    "lastUpdated": "2025-11-13",
+    "description": "Comprehensive list of compromised NPM packages from multiple supply chain attacks including s1ngularity, popular packages, and shai-hulud campaigns",
+    "totalPackages": 252
   },
   "packages": {
     "ansi-regex": [
@@ -21,6 +21,9 @@
     ],
     "chalk-template": [
       "1.1.1"
+    ],
+    "color": [
+      "5.0.1"
     ],
     "color-convert": [
       "3.1.1"
@@ -61,12 +64,54 @@
     "wrap-ansi": [
       "9.0.1"
     ],
+    "@nx/devkit": [
+      "20.9.0",
+      "21.5.0"
+    ],
+    "@nx/enterprise-cloud": [
+      "3.2.0"
+    ],
+    "@nx/eslint": [
+      "21.5.0"
+    ],
+    "@nx/js": [
+      "20.9.0",
+      "21.5.0"
+    ],
+    "@nx/key": [
+      "3.2.0"
+    ],
+    "@nx/node": [
+      "20.9.0",
+      "21.5.0"
+    ],
+    "@nx/workspace": [
+      "20.9.0",
+      "21.5.0"
+    ],
+    "nx": [
+      "20.9.0",
+      "20.10.0",
+      "20.11.0",
+      "20.12.0",
+      "21.5.0",
+      "21.6.0",
+      "21.7.0",
+      "21.8.0"
+    ],
     "proto-tinker-wc": [
       "0.1.87"
     ],
     "prebid": [
       "10.9.1",
       "10.9.2"
+    ],
+    "prebid.js": [
+      "10.9.1",
+      "10.9.2"
+    ],
+    "prebid-universal-creative": [
+      "1.17.3"
     ],
     "@coveops/abi": [
       "2.0.1"
@@ -1084,7 +1129,15 @@
       "19.0.4"
     ],
     "another-shai": [
+      "1.0.0",
       "1.0.1"
+    ],
+    "hello-shai": [
+      "1.0.0",
+      "1.0.1"
+    ],
+    "@teriyakibomb/ember-velcro": [
+      "2.2.1"
     ],
     "ngx-trend": [
       "8.0.1"

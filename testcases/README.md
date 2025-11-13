@@ -1,6 +1,6 @@
 # Test Cases
 
-This directory contains various test cases to validate the shaihulud-dependency-check functionality.
+This directory contains various test cases to validate the compromised-npm-packages-checker functionality.
 
 ## Test Structure
 

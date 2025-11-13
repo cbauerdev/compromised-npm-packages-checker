@@ -303,7 +303,7 @@ function displayResults(result) {
  * Display usage information
  */
 function showUsage() {
-  console.log("Usage: shaihulud-dependency-check [options] <path-to-package-file>");
+  console.log("Usage: compromised-npm-packages-checker [options] <path-to-package-file>");
   console.log("");
   console.log("Options:");
   console.log("  --no-emoji    Disable emoji output (for CI/CD environments)");

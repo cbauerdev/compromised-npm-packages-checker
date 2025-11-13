@@ -1,10 +1,10 @@
 {
-  "name": "shaihulud-dependency-check",
+  "name": "compromised-npm-packages-checker",
   "version": "1.0.0",
   "description": "Security tool to detect compromised NPM packages in Node.js projects",
   "main": "check-compromised-packages.js",
   "bin": {
-    "shaihulud-dependency-check": "./check-compromised-packages.js"
+    "compromised-npm-packages-checker": "./check-compromised-packages.js"
   },
   "scripts": {
     "check": "node check-compromised-packages.js",

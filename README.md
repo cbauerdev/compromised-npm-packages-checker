@@ -1,10 +1,10 @@
-# Shaihulud Dependency Check
+# Compromised NPM Packages Checker
 
 A Node.js security tool that identifies compromised NPM packages by comparing installed package versions against a curated database of known malicious releases. This tool performs version-specific detection to avoid false positives from safe versions of the same packages.
 
 ## What This Tool Does
 
-- **Version-specific detection**: Compares installed package versions against a database of 239+ confirmed compromised package versions from the Shai-Hulud NPM supply chain attacks
+- **Version-specific detection**: Compares installed package versions against a database of 252+ confirmed compromised package versions from multiple NPM supply chain attacks (including Shai-Hulud, s1ngularity, and popular packages campaigns)
 - **Comprehensive scanning**: Analyzes both `package.json` (dependencies, devDependencies, peerDependencies, optionalDependencies) and `package-lock.json` (complete dependency tree)
 - **NPM lockfile compatibility**: Supports both npm v6 (`dependencies` structure) and npm v7+ (`packages` structure) lockfile formats
 - **Semver range handling**: Processes common version ranges (`^`, `~`, exact versions) without external dependencies
@@ -38,22 +38,22 @@ A Node.js security tool that identifies compromised NPM packages by comparing in
 
 ```bash
 git clone <repository-url>
-cd shaihulud-dependency-check
+cd compromised-npm-packages-checker
 chmod +x check-compromised-packages.js
 ```
 
 ### Method 2: Direct Download
 
 ```bash
-curl -O https://raw.githubusercontent.com/your-repo/shaihulud-dependency-check/main/check-compromised-packages.js
-curl -O https://raw.githubusercontent.com/your-repo/shaihulud-dependency-check/main/compromised.json
+curl -O https://raw.githubusercontent.com/your-repo/compromised-npm-packages-checker/main/check-compromised-packages.js
+curl -O https://raw.githubusercontent.com/your-repo/compromised-npm-packages-checker/main/compromised.json
 chmod +x check-compromised-packages.js
 ```
 
 ### Method 3: NPX (After Publishing)
 
 ```bash
-npx shaihulud-dependency-check package-lock.json
+npx compromised-npm-packages-checker package-lock.json
 ```
 
 ## Usage

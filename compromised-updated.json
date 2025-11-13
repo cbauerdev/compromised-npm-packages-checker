@@ -2,7 +2,7 @@
   "_metadata": {
     "source": "Shai-Hulud NPM Supply Chain Attack - Cobenian Detection List",
     "url": "https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt",
-    "lastUpdated": "2025-10-15",
+    "lastUpdated": "2025-11-13",
     "description": "Compromised NPM packages and their specific vulnerable versions",
     "totalPackages": 239
   },

@@ -19,30 +19,62 @@ const SOURCES = {
   // Google Sheets CSV export URL
   // To use: Make your Google Sheet public and use format: 
   // https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={GID}
+  // Or use the published CSV URL format:
+  // https://docs.google.com/spreadsheets/d/e/{SHEET_ID}/pub?gid={GID}&single=true&output=csv
   googleSheets: {
     url: 'https://docs.google.com/spreadsheets/d/16aw6s7mWoGU7vxBciTEZSaR5HaohlBTfVirvI-PypJc/export?format=csv&gid=1289659284',
-    enabled: true,
+    enabled: false, // Disabled - using local CSV instead
     parser: 'csv'
+  },
+  
+  // Local CSV file alternative (if Google Sheets doesn't work)
+  localCsv: {
+    url: './Public Sha1-Hulud - Koi.csv', // Local file path
+    enabled: true, // Enable the local CSV file
+    parser: 'csv',
+    isLocal: true
   }
 };
 
 const COMPROMISED_JSON_FILE = 'compromised.json';
 
-function fetchUrl(url) {
+function fetchUrl(url, maxRedirects = 3) {
   return new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      let data = '';
-      
-      response.on('data', (chunk) => {
-        data += chunk;
+    function makeRequest(requestUrl, redirectCount) {
+      if (redirectCount >= maxRedirects) {
+        reject(new Error(`Too many redirects (${redirectCount})`));
+        return;
+      }
+
+      https.get(requestUrl, (response) => {
+        // Handle redirects
+        if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+          console.log(`   🔄 Following redirect to: ${response.headers.location}`);
+          makeRequest(response.headers.location, redirectCount + 1);
+          return;
+        }
+
+        // Handle non-success status codes
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
+          return;
+        }
+
+        let data = '';
+        
+        response.on('data', (chunk) => {
+          data += chunk;
+        });
+        
+        response.on('end', () => {
+          resolve(data);
+        });
+      }).on('error', (error) => {
+        reject(error);
       });
-      
-      response.on('end', () => {
-        resolve(data);
-      });
-    }).on('error', (error) => {
-      reject(error);
-    });
+    }
+
+    makeRequest(url, 0);
   });
 }
 
@@ -68,7 +100,19 @@ async function downloadAndMerge() {
 
     try {
       console.log(`📥 Downloading from ${sourceName}...`);
-      const data = await fetchUrl(sourceConfig.url);
+      
+      let data;
+      if (sourceConfig.isLocal) {
+        // Read from local file
+        if (!fs.existsSync(sourceConfig.url)) {
+          throw new Error(`Local file not found: ${sourceConfig.url}`);
+        }
+        data = fs.readFileSync(sourceConfig.url, 'utf8');
+        console.log(`   📁 Read local file: ${sourceConfig.url}`);
+      } else {
+        // Fetch from URL
+        data = await fetchUrl(sourceConfig.url);
+      }
       
       let packages;
       if (sourceConfig.parser === 'csv') {
@@ -82,7 +126,7 @@ async function downloadAndMerge() {
       const { added, updated } = mergePackages(mergedPackages, packages);
       totalAddedCount += added;
       totalUpdatedCount += updated;
-      console.log(`   ✅ ${sourceName}: ${added} new, ${updated} updated`);
+      console.log(`   ✅ ${sourceName}: ${added} new, ${updated} updated (${Object.keys(packages).length} packages parsed)`);
     } catch (error) {
       console.error(`   ❌ Failed to fetch ${sourceName}: ${error.message}`);
     }
@@ -158,16 +202,32 @@ function parseCsvFormat(data) {
   const lines = data.split('\n');
   const packages = {};
   
+  if (lines.length === 0) return packages;
+  
+  // Parse header to determine column positions
+  const header = lines[0].toLowerCase();
+  let packageCol = 0;
+  let versionCol = 1;
+  
+  if (header.includes('package name')) {
+    packageCol = 0;
+    versionCol = 1;
+  } else if (header.includes('package')) {
+    packageCol = 0;
+    versionCol = 1;
+  }
+  
   for (let i = 1; i < lines.length; i++) { // Skip header row
     const line = lines[i].trim();
     
     if (!line) continue;
     
-    const parts = line.split(',');
+    // Handle CSV with potential commas in quoted fields
+    const parts = line.split(',').map(p => p.trim());
     if (parts.length < 2) continue;
     
-    const packageName = parts[0].trim();
-    const versionInfo = parts[1].trim();
+    const packageName = parts[packageCol].replace(/['"]/g, '').trim();
+    const versionInfo = parts[versionCol].replace(/['"]/g, '').trim();
     
     if (!packageName || !versionInfo) continue;
     
@@ -204,12 +264,22 @@ function parseVersionInfo(versionInfo) {
   const versionParts = cleaned.split('||').map(v => v.trim());
   
   for (const part of versionParts) {
-    // Extract version number from patterns like "= 1.2.3" or "1.2.3"
-    const match = part.match(/=?\s*(\d+\.\d+\.\d+(?:-[a-zA-Z0-9-]+)?(?:\+[a-zA-Z0-9-]+)?)/);
+    // Handle different version formats:
+    // 1. Simple version: "1.2.3"
+    // 2. With equals: "= 1.2.3"
+    // 3. Complex format from Wiz CSV: "= 1.2.3 || = 1.4.5"
+    
+    let match = part.match(/=?\s*(\d+\.\d+\.\d+(?:-[a-zA-Z0-9-]+)?(?:\+[a-zA-Z0-9-]+)?)/);
     if (match) {
       const version = match[1];
       if (!versions.includes(version)) {
         versions.push(version);
+      }
+    } else if (/^\d+\.\d+\.\d+/.test(part)) {
+      // Handle simple version format directly
+      const simpleMatch = part.match(/^(\d+\.\d+\.\d+(?:-[a-zA-Z0-9-]+)?(?:\+[a-zA-Z0-9-]+)?)/);
+      if (simpleMatch && !versions.includes(simpleMatch[1])) {
+        versions.push(simpleMatch[1]);
       }
     }
   }
@@ -264,6 +334,7 @@ function showUsage() {
   console.log('  --only-wiz          Only use Wiz Security CSV source');
   console.log('  --only-sheets       Only use Google Sheets source');
   console.log('  --only-legacy       Only use legacy source');
+  console.log('  --only-local        Only use local CSV file');
   console.log('  --help, -h          Show this help message');
   console.log('');
   console.log('Examples:');
@@ -293,6 +364,11 @@ if (require.main === module) {
       SOURCES.legacy.enabled = false;
       SOURCES.wizCsv.enabled = false;
     } else if (arg === '--only-legacy') {
+      SOURCES.wizCsv.enabled = false;
+      SOURCES.googleSheets.enabled = false;
+      SOURCES.localCsv.enabled = false;
+    } else if (arg === '--only-local') {
+      SOURCES.legacy.enabled = false;
       SOURCES.wizCsv.enabled = false;
       SOURCES.googleSheets.enabled = false;
     }

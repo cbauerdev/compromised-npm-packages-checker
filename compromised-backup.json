@@ -2,8 +2,6 @@
   "_metadata": {
     "source": "Multiple sources: Wiz Security Research + Google Sheets + Legacy sources",
     "sources": {
-      "legacy": "https://raw.githubusercontent.com/Cobenian/shai-hulud-detect/main/compromised-packages.txt",
-      "wizCsv": "https://raw.githubusercontent.com/wiz-sec-public/wiz-research-iocs/main/reports/shai-hulud-2-packages.csv",
       "localCsv": "./Public Sha1-Hulud - Koi.csv"
     },
     "lastUpdated": "2025-11-25",
@@ -12,7 +10,7 @@
     "updateInfo": {
       "newPackages": 0,
       "updatedPackages": 0,
-      "enabledSources": 3
+      "enabledSources": 1
     }
   },
   "packages": {

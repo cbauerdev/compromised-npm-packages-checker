@@ -9,7 +9,7 @@ A Node.js security tool that identifies compromised NPM packages by comparing in
 - **NPM lockfile compatibility**: Supports both npm v6 (`dependencies` structure) and npm v7+ (`packages` structure) lockfile formats
 - **Semver range handling**: Processes common version ranges (`^`, `~`, exact versions) without external dependencies
 - **CI/CD integration**: Returns appropriate exit codes (0 for safe, 1 for compromised packages found)
-- **External data source**: Loads compromised package data from `compromised.json` for easy maintenance and updates
+- **Auto-updating database**: Maintains current threat intelligence by merging upstream sources with curated additions
 
 ## What This Tool Does Not Do
 
@@ -71,7 +71,7 @@ node check-compromised-packages.js <path-to-package-file>
 node check-compromised-packages.js package.json
 
 # Scan package-lock.json (complete dependency tree - recommended)
-node check-compromised-packages.js package-lock.json
+node check-compromised-packages.js package-lock.jsonup   
 
 # Disable emoji output for CI/CD environments
 node check-compromised-packages.js --no-emoji package-lock.json
@@ -84,8 +84,21 @@ node check-compromised-packages.js backend/package.json
 ### Command Line Options
 
 ```bash
---no-emoji    Disable emoji output for CI/CD environments
---help, -h    Show usage information
+--no-emoji       Disable emoji output for CI/CD environments
+--log <file>     Save scan results to log file (txt format)
+--output <file>  Same as --log (alias for log output)
+--help, -h       Show usage information
+```
+
+### Examples with Logging
+
+```bash
+# Save scan results to a log file
+node check-compromised-packages.js --log scan-results.txt package.json
+node check-compromised-packages.js --output security-report.txt package-lock.json
+
+# Combine with other options
+node check-compromised-packages.js --no-emoji --log ci-scan.txt package-lock.json
 ```
 
 ## Output Examples
@@ -141,6 +154,48 @@ Analyzing: package-lock.json
    Recommended action: Update to a safe version or remove the package.
 ```
 
+## Log File Output
+
+When using the `--log` or `--output` option, the tool creates a structured text report:
+
+```
+Compromised NPM Packages Scan Report
+Generated: 2025-11-25T11:39:54.381Z
+Scanned file: package-lock.json
+Tool: compromised-npm-packages-checker
+Database: 1041 known compromised packages
+================================================================================
+SCAN STATUS: 3 COMPROMISED PACKAGE(S) FOUND
+
+DETAILS:
+1. Package: chalk
+   Version: 5.6.1
+   Compromised versions: 5.6.1
+   Risk level: HIGH
+
+2. Package: debug
+   Version: 4.4.2
+   Compromised versions: 4.4.2
+   Risk level: HIGH
+
+Total packages scanned: 15
+Compromised packages found: 2
+
+RECOMMENDATIONS:
+- IMMEDIATE ACTION REQUIRED: Remove or update compromised packages.
+- Review your package-lock.json for any suspicious packages.
+- Consider running additional security scans.
+- UPDATE: chalk (currently 5.6.1)
+- UPDATE: debug (currently 4.4.2)
+================================================================================
+```
+
+This log format is ideal for:
+- **Audit trails**: Keep records of security scans
+- **CI/CD integration**: Parse results programmatically
+- **Security reports**: Share findings with team members
+- **Compliance documentation**: Maintain security scan history
+
 ## Exit Codes
 
 - **0**: No compromised packages found or help displayed
@@ -152,19 +207,30 @@ Analyzing: package-lock.json
 ```yaml
 - name: Check for compromised packages
   run: |
-    node check-compromised-packages.js --no-emoji package-lock.json
+    node check-compromised-packages.js --no-emoji --log security-scan.txt package-lock.json
     if [ $? -eq 1 ]; then
       echo "::error::Compromised NPM packages detected"
       exit 1
     fi
+
+- name: Upload security scan results
+  uses: actions/upload-artifact@v3
+  if: always()
+  with:
+    name: security-scan-results
+    path: security-scan.txt
 ```
 
 ### Shell Script Integration
 ```bash
 #!/bin/bash
-node check-compromised-packages.js --no-emoji package-lock.json
-if [ $? -eq 1 ]; then
+SCAN_RESULT_FILE="scan-$(date +%Y%m%d-%H%M%S).txt"
+node check-compromised-packages.js --no-emoji --log "$SCAN_RESULT_FILE" package-lock.json
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 1 ]; then
     echo "Build failed: Compromised packages detected"
+    echo "See detailed report: $SCAN_RESULT_FILE"
     exit 1
 fi
 echo "Security check passed"
@@ -183,10 +249,30 @@ node update-compromised-list.js
 ```
 
 **Current Database Coverage:**
-- **239 compromised packages** from Shai-Hulud supply chain attacks
+- **1,045+ compromised packages** from multiple supply chain attack campaigns
 - **Critical packages**: `chalk@5.6.1`, `debug@4.4.2` (September 8, 2025 attack with 2+ billion weekly downloads)
-- **Extended campaign**: `@ctrl/*`, `@nativescript-community/*`, `@teselagen/*`, `@crowdstrike/*`, `@operato/*`, `@things-factory/*` namespaces
-- **Data source**: [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect)
+- **Extended campaigns**: Multiple attack vectors including s1ngularity, popular packages, Shai-Hulud, and Red Hat security advisories
+- **Auto-updating**: Continuously updated from upstream threat intelligence sources
+
+## Database Updates
+
+### Automatic Updates
+```bash
+# Update the compromised packages database
+node update-compromised-list.js
+```
+
+The update script:
+- 📥 Downloads latest compromised packages from upstream sources
+- 🔄 Merges new packages with existing curated database
+- 📊 Preserves manually added packages and versions
+- 💾 Updates `compromised.json` with comprehensive threat data
+- 📈 Provides statistics on new packages and updates found
+
+### Database Sources
+- **Upstream**: [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect) (auto-updated)
+- **Curated**: Red Hat security advisories, s1ngularity campaign, popular packages attacks
+- **Community**: Additional threat intelligence from security research
 
 ## Technical Implementation
 

@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 
-// Script to convert the GitHub raw format to our JSON format
+// Script to update compromised.json with latest packages from GitHub while preserving existing data
 const fs = require('fs');
 const https = require('https');
 
 const url = 'https://raw.githubusercontent.com/Cobenian/shai-hulud-detect/main/compromised-packages.txt';
+const COMPROMISED_JSON_FILE = 'compromised.json';
 
-function downloadAndConvert() {
+function downloadAndMerge() {
+  // Read existing compromised.json
+  let existingData = { packages: {} };
+  if (fs.existsSync(COMPROMISED_JSON_FILE)) {
+    existingData = JSON.parse(fs.readFileSync(COMPROMISED_JSON_FILE, 'utf8'));
+    console.log(`📖 Loaded existing database with ${Object.keys(existingData.packages).length} packages`);
+  }
+
   https.get(url, (response) => {
     let data = '';
     
@@ -15,26 +23,65 @@ function downloadAndConvert() {
     });
     
     response.on('end', () => {
-      console.log('Downloaded compromised packages list...');
-      const packages = parseCompromisedList(data);
+      console.log('📥 Downloaded latest compromised packages list from GitHub...');
+      const newPackages = parseCompromisedList(data);
+      
+      // Merge new packages with existing ones
+      const mergedPackages = { ...existingData.packages };
+      let addedCount = 0;
+      let updatedCount = 0;
+      
+      for (const [packageName, versions] of Object.entries(newPackages)) {
+        if (mergedPackages[packageName]) {
+          // Merge versions if package exists
+          const existingVersions = new Set(mergedPackages[packageName]);
+          let newVersionsAdded = false;
+          
+          for (const version of versions) {
+            if (!existingVersions.has(version)) {
+              mergedPackages[packageName].push(version);
+              newVersionsAdded = true;
+            }
+          }
+          
+          if (newVersionsAdded) {
+            mergedPackages[packageName].sort();
+            updatedCount++;
+          }
+        } else {
+          // Add new package
+          mergedPackages[packageName] = versions;
+          addedCount++;
+        }
+      }
       
       const jsonOutput = {
         "_metadata": {
-          "source": "Shai-Hulud NPM Supply Chain Attack - Cobenian Detection List",
-          "url": "https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt",
+          "source": "Multiple sources: Shai-Hulud NPM Supply Chain Attack + Red Hat Security Advisory + Auto-updates",
+          "url": "https://access.redhat.com/security/supply-chain-attacks-NPM-packages",
           "lastUpdated": new Date().toISOString().split('T')[0],
-          "description": "Compromised NPM packages and their specific vulnerable versions",
-          "totalPackages": Object.keys(packages).length
+          "description": "Comprehensive list of compromised NPM packages from multiple supply chain attacks including s1ngularity, popular packages, and shai-hulud campaigns. Automatically updated from upstream sources.",
+          "totalPackages": Object.keys(mergedPackages).length,
+          "autoUpdateSource": "https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt"
         },
-        "packages": packages
+        "packages": mergedPackages
       };
       
-      fs.writeFileSync('compromised-updated.json', JSON.stringify(jsonOutput, null, 2));
-      console.log(`✅ Converted ${Object.keys(packages).length} compromised packages to JSON format`);
-      console.log('Output saved to: compromised-updated.json');
+      fs.writeFileSync(COMPROMISED_JSON_FILE, JSON.stringify(jsonOutput, null, 2));
+      console.log(`✅ Database updated successfully:`);
+      console.log(`   📦 Total packages: ${Object.keys(mergedPackages).length}`);
+      console.log(`   🆕 New packages added: ${addedCount}`);
+      console.log(`   📝 Packages updated: ${updatedCount}`);
+      console.log(`   💾 Saved to: ${COMPROMISED_JSON_FILE}`);
+      
+      if (addedCount > 0 || updatedCount > 0) {
+        console.log(`\n🔄 Changes detected! Consider running security scans on your projects.`);
+      } else {
+        console.log(`\n✨ No new compromised packages found. Database is up to date.`);
+      }
     });
   }).on('error', (error) => {
-    console.error('Error downloading file:', error);
+    console.error('❌ Error downloading file:', error);
     process.exit(1);
   });
 }
@@ -77,6 +124,6 @@ function parseCompromisedList(data) {
 }
 
 if (require.main === module) {
-  console.log('Downloading and converting compromised packages list...');
-  downloadAndConvert();
+  console.log('🔄 Updating compromised packages database...');
+  downloadAndMerge();
 }

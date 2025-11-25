@@ -6,6 +6,7 @@ const path = require("path");
 // Global configuration
 let COMPROMISED_PACKAGES = {};
 let USE_EMOJIS = true;
+let LOG_FILE = null;
 
 /**
  * Parse a semantic version string into its components
@@ -300,19 +301,103 @@ function displayResults(result) {
 }
 
 /**
+ * Write log entry to file if logging is enabled
+ * @param {string} message - Message to log
+ */
+function writeToLog(message) {
+  if (LOG_FILE) {
+    fs.appendFileSync(LOG_FILE, message + '\n');
+  }
+}
+
+/**
+ * Initialize log file with header
+ * @param {string} filePath - Path to the log file
+ * @param {string} scanFile - File being scanned
+ */
+function initializeLogFile(filePath, scanFile) {
+  const timestamp = new Date().toISOString();
+  const header = [
+    `Compromised NPM Packages Scan Report`,
+    `Generated: ${timestamp}`,
+    `Scanned file: ${scanFile}`,
+    `Tool: compromised-npm-packages-checker`,
+    `Database: ${Object.keys(COMPROMISED_PACKAGES).length} known compromised packages`,
+    `${'='.repeat(80)}`,
+    ''
+  ].join('\n');
+  
+  fs.writeFileSync(filePath, header);
+}
+
+/**
+ * Log scan results in structured text format
+ * @param {Object} result - Scan result object
+ */
+function logScanResults(result) {
+  if (!LOG_FILE) return;
+
+  const lines = [];
+  
+  if (result.found.length === 0) {
+    lines.push('SCAN STATUS: CLEAN');
+    lines.push('No compromised packages detected.');
+  } else {
+    lines.push(`SCAN STATUS: ${result.found.length} COMPROMISED PACKAGE(S) FOUND`);
+    lines.push('');
+    lines.push('DETAILS:');
+    
+    result.found.forEach((pkg, index) => {
+      lines.push(`${index + 1}. Package: ${pkg.name}`);
+      lines.push(`   Version: ${pkg.version}`);
+      lines.push(`   Compromised versions: ${pkg.compromisedVersions.join(', ')}`);
+      lines.push(`   Risk level: HIGH`);
+      lines.push('');
+    });
+  }
+  
+  lines.push(`Total packages scanned: ${result.total}`);
+  lines.push(`Compromised packages found: ${result.found.length}`);
+  lines.push('');
+  lines.push('RECOMMENDATIONS:');
+  
+  if (result.found.length === 0) {
+    lines.push('- Your dependencies appear clean from known compromised packages.');
+    lines.push('- Continue monitoring for new security advisories.');
+  } else {
+    lines.push('- IMMEDIATE ACTION REQUIRED: Remove or update compromised packages.');
+    lines.push('- Review your package-lock.json for any suspicious packages.');
+    lines.push('- Consider running additional security scans.');
+    result.found.forEach(pkg => {
+      lines.push(`- UPDATE: ${pkg.name} (currently ${pkg.version})`);
+    });
+  }
+  
+  lines.push('');
+  lines.push(`${'='.repeat(80)}`);
+  lines.push('');
+  
+  writeToLog(lines.join('\n'));
+}
+
+/**
  * Display usage information
  */
 function showUsage() {
   console.log("Usage: compromised-npm-packages-checker [options] <path-to-package-file>");
   console.log("");
   console.log("Options:");
-  console.log("  --no-emoji    Disable emoji output (for CI/CD environments)");
-  console.log("  --help, -h    Show this help message");
+  console.log("  --no-emoji       Disable emoji output (for CI/CD environments)");
+  console.log("  --log <file>     Save scan results to log file (txt format)");
+  console.log("  --output <file>  Same as --log (alias)");
+  console.log("  --help, -h       Show this help message");
   console.log("");
   console.log("Examples:");
   console.log("  node check-compromised-packages.js package.json");
   console.log("  node check-compromised-packages.js package-lock.json");
   console.log("  node check-compromised-packages.js --no-emoji frontend/package-lock.json");
+  console.log("  node check-compromised-packages.js --log scan-results.txt package.json");
+  console.log("  node check-compromised-packages.js --output report.txt package-lock.json");
   console.log("");
   console.log("Note: If you get NPX errors, the package may not be published yet.");
   console.log("      See INSTALL.md for alternative installation methods.");
@@ -338,6 +423,15 @@ function main() {
       process.exit(0);
     } else if (arg === '--no-emoji') {
       USE_EMOJIS = false;
+    } else if (arg === '--log' || arg === '--output') {
+      // Get the log file path from next argument
+      if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+        LOG_FILE = args[i + 1];
+        i++; // Skip the log file argument in next iteration
+      } else {
+        console.error(`Error: ${arg} requires a file path`);
+        process.exit(1);
+      }
     } else if (!arg.startsWith('--') && !filePath) {
       filePath = arg;
     }
@@ -365,9 +459,26 @@ function main() {
 
   COMPROMISED_PACKAGES = loadCompromisedPackages(compromisedJsonPath);
 
+  // Initialize log file if specified
+  if (LOG_FILE) {
+    try {
+      initializeLogFile(LOG_FILE, filePath);
+      console.log(`📝 Log file initialized: ${LOG_FILE}`);
+    } catch (error) {
+      console.error(`Error initializing log file: ${error.message}`);
+      process.exit(1);
+    }
+  }
+
   // Run the analysis and display results
   const result = checkForCompromisedPackages(filePath);
   displayResults(result);
+
+  // Log results if logging is enabled
+  if (LOG_FILE) {
+    logScanResults(result);
+    console.log(`📄 Scan results saved to: ${LOG_FILE}`);
+  }
 
   // Set appropriate exit code (1 if compromised packages found or error occurred)
   if (!result.safe) {

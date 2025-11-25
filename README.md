@@ -85,20 +85,27 @@ node check-compromised-packages.js backend/package.json
 
 ```bash
 --no-emoji       Disable emoji output for CI/CD environments
---log <file>     Save scan results to log file (txt format)
+--no-log         Disable automatic log file creation
+--log <file>     Save scan results to specific log file (disables auto-log)
 --output <file>  Same as --log (alias for log output)
 --help, -h       Show usage information
 ```
 
-### Examples with Logging
+### Examples
 
 ```bash
-# Save scan results to a log file
-node check-compromised-packages.js --log scan-results.txt package.json
-node check-compromised-packages.js --output security-report.txt package-lock.json
+# Basic scan with automatic logging
+node check-compromised-packages.js package.json
+# Creates: scan-package-2025-11-25T12-30-45.txt
 
-# Combine with other options
-node check-compromised-packages.js --no-emoji --log ci-scan.txt package-lock.json
+# Disable automatic logging
+node check-compromised-packages.js --no-log package.json
+
+# Custom log file name
+node check-compromised-packages.js --log security-report.txt package.json
+
+# CI/CD friendly (no emojis, no logs)
+node check-compromised-packages.js --no-emoji --no-log package-lock.json
 ```
 
 ## Output Examples
@@ -238,41 +245,61 @@ echo "Security check passed"
 
 ## Database Updates
 
-The tool uses an external `compromised.json` file containing the package database:
+### Automatic Updates from Multiple Sources
+
+The tool now supports updating from multiple authoritative sources:
 
 ```bash
-# Update to latest compromised packages list
+# Update from all enabled sources (default)
 node update-compromised-list.js
 
-# This downloads the latest list from GitHub and updates compromised.json
-# Previous version is backed up as compromised-old.json.bak
+# Update from specific sources only
+node update-compromised-list.js --only-wiz         # Wiz Security Research only
+node update-compromised-list.js --only-sheets      # Google Sheets database only
+node update-compromised-list.js --only-legacy      # Legacy source only
+
+# Disable specific sources
+node update-compromised-list.js --disable-legacy   # Skip legacy source
+node update-compromised-list.js --disable-wiz      # Skip Wiz Security CSV
+node update-compromised-list.js --disable-sheets   # Skip Google Sheets
+
+# Get help
+node update-compromised-list.js --help
 ```
 
-**Current Database Coverage:**
-- **1,045+ compromised packages** from multiple supply chain attack campaigns
-- **Critical packages**: `chalk@5.6.1`, `debug@4.4.2` (September 8, 2025 attack with 2+ billion weekly downloads)
-- **Extended campaigns**: Multiple attack vectors including s1ngularity, popular packages, Shai-Hulud, and Red Hat security advisories
-- **Auto-updating**: Continuously updated from upstream threat intelligence sources
+### Database Sources
 
-## Database Updates
+The update script now pulls from these authoritative sources:
 
-### Automatic Updates
-```bash
-# Update the compromised packages database
-node update-compromised-list.js
-```
+1. **Wiz Security Research** (Primary)
+   - URL: [wiz-sec-public/wiz-research-iocs](https://github.com/wiz-sec-public/wiz-research-iocs/blob/main/reports/shai-hulud-2-packages.csv)
+   - Format: CSV with package names and versions
+   - Coverage: Latest Shai-Hulud 2.0 and related campaigns
+
+2. **Google Sheets Database** (Curated)
+   - URL: [Custom Database](https://docs.google.com/spreadsheets/d/16aw6s7mWoGU7vxBciTEZSaR5HaohlBTfVirvI-PypJc/edit#gid=1289659284)
+   - Format: CSV export from collaborative spreadsheet
+   - Coverage: Community-curated threat intelligence
+
+3. **Legacy Source** (Historical)
+   - URL: [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt)
+   - Format: Text file with package:version format
+   - Coverage: Original Shai-Hulud and earlier campaigns
+
+### Update Process
 
 The update script:
-- 📥 Downloads latest compromised packages from upstream sources
+- 📥 Downloads latest compromised packages from all enabled sources
 - 🔄 Merges new packages with existing curated database
 - 📊 Preserves manually added packages and versions
 - 💾 Updates `compromised.json` with comprehensive threat data
-- 📈 Provides statistics on new packages and updates found
+- 📈 Provides statistics on new packages and updates found per source
 
-### Database Sources
-- **Upstream**: [Cobenian/shai-hulud-detect](https://github.com/Cobenian/shai-hulud-detect) (auto-updated)
-- **Curated**: Red Hat security advisories, s1ngularity campaign, popular packages attacks
-- **Community**: Additional threat intelligence from security research
+**Current Database Coverage:**
+- **1,047+ compromised packages** from multiple supply chain attack campaigns
+- **Critical packages**: `chalk@5.6.1`, `debug@4.4.2` (September 8, 2025 attack with 2+ billion weekly downloads)
+- **Extended campaigns**: Multiple attack vectors including s1ngularity, popular packages, Shai-Hulud 2.0, and security advisories
+- **Multi-source intelligence**: Continuously updated from multiple authoritative threat intelligence sources
 
 ## Technical Implementation
 

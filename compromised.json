@@ -1,11 +1,19 @@
 {
   "_metadata": {
-    "source": "Multiple sources: Shai-Hulud NPM Supply Chain Attack + Red Hat Security Advisory + Auto-updates",
-    "url": "https://access.redhat.com/security/supply-chain-attacks-NPM-packages",
+    "source": "Multiple sources: Wiz Security Research + Google Sheets + Legacy sources",
+    "sources": {
+      "legacy": "https://raw.githubusercontent.com/Cobenian/shai-hulud-detect/main/compromised-packages.txt",
+      "wizCsv": "https://raw.githubusercontent.com/wiz-sec-public/wiz-research-iocs/main/reports/shai-hulud-2-packages.csv",
+      "googleSheets": "https://docs.google.com/spreadsheets/d/16aw6s7mWoGU7vxBciTEZSaR5HaohlBTfVirvI-PypJc/export?format=csv&gid=1289659284"
+    },
     "lastUpdated": "2025-11-25",
-    "description": "Comprehensive list of compromised NPM packages from multiple supply chain attacks including s1ngularity, popular packages, and shai-hulud campaigns. Automatically updated from upstream sources.",
-    "totalPackages": 1045,
-    "autoUpdateSource": "https://github.com/Cobenian/shai-hulud-detect/blob/main/compromised-packages.txt"
+    "description": "Comprehensive list of compromised NPM packages from multiple supply chain attacks including Shai-Hulud campaigns. Updated from multiple authoritative sources.",
+    "totalPackages": 1047,
+    "updateInfo": {
+      "newPackages": 0,
+      "updatedPackages": 0,
+      "enabledSources": 3
+    }
   },
   "packages": {
     "ansi-regex": [
@@ -1605,6 +1613,7 @@
       "1.10.2"
     ],
     "@everreal/react-charts": [
+      "2.0.1",
       "2.0.2"
     ],
     "@everreal/validate-esmoduleinterop-imports": [
@@ -1612,6 +1621,7 @@
       "1.4.5"
     ],
     "@everreal/web-analytics": [
+      "0.0.1",
       "0.0.2"
     ],
     "@faq-component/core": [
@@ -2124,6 +2134,7 @@
     ],
     "@postman/aether-icons": [
       "2.23.2",
+      "2.23.3",
       "2.23.4"
     ],
     "@postman/csv-parse": [
@@ -2158,6 +2169,7 @@
     ],
     "@postman/pm-bin-macos-x64": [
       "1.24.3",
+      "1.24.4",
       "1.24.5"
     ],
     "@postman/pm-bin-windows-x64": [
@@ -2197,6 +2209,7 @@
     ],
     "@postman/wdio-allure-reporter": [
       "0.0.7",
+      "0.0.8",
       "0.0.9"
     ],
     "@postman/wdio-junit-reporter": [
@@ -2437,6 +2450,7 @@
       "0.1.11"
     ],
     "@voiceflow/alexa-types": [
+      "2.15.60",
       "2.15.61"
     ],
     "@voiceflow/anthropic": [
@@ -2444,6 +2458,7 @@
       "0.4.5"
     ],
     "@voiceflow/api-sdk": [
+      "3.28.58",
       "3.28.59"
     ],
     "@voiceflow/backend-utils": [
@@ -2519,6 +2534,7 @@
       "2.17.13"
     ],
     "@voiceflow/google-types": [
+      "2.21.12",
       "2.21.13"
     ],
     "@voiceflow/husky-config": [
@@ -2558,7 +2574,8 @@
       "1.3.2"
     ],
     "@voiceflow/npm-package-json-lint-config": [
-      "1.1.1"
+      "1.1.1",
+      "1.1.2"
     ],
     "@voiceflow/openai": [
       "3.2.2",
@@ -2577,6 +2594,7 @@
       "1.10.2"
     ],
     "@voiceflow/react-chat": [
+      "1.65.3",
       "1.65.4"
     ],
     "@voiceflow/runtime": [
@@ -2632,6 +2650,7 @@
       "1.1.5"
     ],
     "@voiceflow/utils-designer": [
+      "1.74.19",
       "1.74.20"
     ],
     "@voiceflow/verror": [
@@ -2896,6 +2915,7 @@
       "1.0.6"
     ],
     "dialogflow-es": [
+      "1.1.1",
       "1.1.2",
       "1.1.3",
       "1.1.4"
@@ -3053,6 +3073,7 @@
       "1.2.2"
     ],
     "haufe-axera-api-client": [
+      "0.0.1",
       "0.0.2"
     ],
     "hope-mapboxdraw": [
@@ -3702,7 +3723,8 @@
     "vf-oss-template": [
       "1.0.1",
       "1.0.2",
-      "1.0.3"
+      "1.0.3",
+      "1.0.4"
     ],
     "victoria-wallet-constants": [
       "0.1.1",
@@ -3801,6 +3823,12 @@
     ],
     "ngx-trend": [
       "8.0.1"
+    ],
+    "@relyt/mcp-server-relytone": [
+      "0.0.3"
+    ],
+    "ids-enterprise-ng": [
+      "20.1.6"
     ]
   }
 }
